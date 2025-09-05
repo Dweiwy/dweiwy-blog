@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - Dweiwy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header id="main-header">
+        <nav class="main-nav container">
+            <a href="index.html" class="nav-brand">Dweiwy</a>
+            <ul class="desktop-nav" id="nav-links">
+                <!-- Links dynamically inserted by script.js -->
+            </ul>
+        </nav>
+    </header>
+    
+    <main class="content-section">
+        <div class="container" id="profile-container">
+            <p id="loading-message">Loading profile...</p>
+            <!-- Profile content will be dynamically inserted here -->
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Dweiwy. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        const API_BASE_URL = 'https://dweiwy-backend.ronandreicm.workers.dev';
+        const profileContainer = document.getElementById('profile-container');
+        const loadingMessage = document.getElementById('loading-message');
+        const loggedInUser = JSON.parse(localStorage.getItem('dweiwy_user'));
+
+        async function fetchUserProfile() {
+            // Determine which profile to load: the logged-in user's or one from the URL.
+            const params = new URLSearchParams(window.location.search);
+            const userIdFromUrl = params.get('id');
+            const userIdToFetch = userIdFromUrl || loggedInUser?.id;
+
+            if (!userIdToFetch) {
+                loadingMessage.innerHTML = '<h2>Error</h2><p>You must be logged in to view your profile, or specify a user ID.</p>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users/${userIdToFetch}`);
+                if (!response.ok) throw new Error('User not found.');
+                
+                const profile = await response.json();
+                document.title = `${profile.name}'s Profile - Dweiwy`;
+
+                const isOwnProfile = loggedInUser && loggedInUser.id === profile.id;
+
+                let editProfileHtml = '';
+                if (isOwnProfile) {
+                    editProfileHtml = `
+                        <div class="profile-edit-section">
+                            <h3>Edit Your Profile</h3>
+                            <div class="form-group">
+                                <label for="userName">Display Name</label>
+                                <input type="text" id="userName" value="${profile.name}">
+                            </div>
+                            <div class="form-group">
+                                <label for="avatarUrl">Avatar URL</label>
+                                <input type="text" id="avatarUrl" value="${profile.avatar_url || ''}">
+                            </div>
+                            <button class="button">Save Changes (UI Only)</button>
+                        </div>
+                    `;
+                }
+
+                profileContainer.innerHTML = `
+                    <div class="profile-layout">
+                        <aside class="profile-sidebar">
+                            <img src="${profile.avatar_url || 'https://i.pravatar.cc/150'}" alt="${profile.name}" class="profile-avatar">
+                            <h1>${profile.name}</h1>
+                            <p class="profile-rank">${profile.role}</p>
+                        </aside>
+                        <main class="profile-main">
+                            <h2>User Posts</h2>
+                            <ul class="profile-post-list">
+                                ${profile.posts.length > 0 ? profile.posts.map(post => `
+                                    <li><a href="post.html?id=${post.id}">${post.title}</a></li>
+                                `).join('') : '<li>This user has not made any posts yet.</li>'}
+                            </ul>
+                            ${editProfileHtml}
+                        </main>
+                    </div>
+                `;
+
+            } catch (error) {
+                loadingMessage.innerHTML = `<h2>Error</h2><p>${error.message}</p>`;
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', fetchUserProfile);
+    </script>
+</body>
+</html>

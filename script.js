@@ -12,6 +12,7 @@ function updateNav() {
 
     if (user && user.id) {
         navHtml = `
+            <li><a href="profile.html">Profile</a></li>
             <li><a href="create-post.html">Create Post</a></li>
             <li><button id="logout-button" class="logout-button">Logout</button></li>
         `;
