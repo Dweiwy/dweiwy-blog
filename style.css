@@ -26,9 +26,9 @@ body {
 
 /* --- General Layout & Components --- */
 .container { max-width: 1200px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: 1fr; gap: 20px; }
-@media (min-width: 992px) { .container { grid-template-columns: 1fr 300px; } }
+@media (min-width: 992px) { .container { grid-template-columns: minmax(0, 1fr) 300px; } } /* <-- Fix for content squishing */
 
-main { grid-column: 1 / -1; }
+main { grid-column: 1 / -1; min-width: 0; } /* <-- Fix for content squishing */
 @media (min-width: 992px) { main { grid-column: 1 / 2; } }
 
 aside { display: none; }
@@ -68,7 +68,7 @@ a:hover { color: var(--color-accent-dark); }
 .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid var(--color-border); border-radius: 4px; box-sizing: border-box; }
 
 /* --- Post Styling (Forum-like) --- */
-.post-card, .post-full-card { background-color: var(--color-surface); border: 1px solid var(--color-border); border-radius: 5px; }
+.post-card, .post-full-card { background-color: var(--color-surface); border: 1px solid var(--color-border); border-radius: 5px; overflow: hidden; } /* Added overflow hidden */
 .post-header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background-color: #f9f9f9; border-bottom: 1px solid var(--color-border); }
 .post-meta { display: flex; align-items: center; gap: 10px; font-size: 0.9em; color: var(--color-light-text); }
 .post-date { background-color: var(--color-accent); color: white; padding: 8px; border-radius: 5px; text-align: center; line-height: 1; }
@@ -80,6 +80,13 @@ a:hover { color: var(--color-accent-dark); }
 .post-title a { color: var(--color-dark-text); }
 .post-body { line-height: 1.8; font-size: 1.05em; }
 .post-body > *:first-child { margin-top: 0; }
+/* New styles for better post formatting */
+.post-body p { margin-bottom: 1.2em; }
+.post-body h1, .post-body h2, .post-body h3 { margin: 1.5em 0 0.8em; }
+.post-body blockquote { border-left: 3px solid var(--color-accent); margin: 1.5em 0; padding: 0.5em 1.5em; color: var(--color-light-text); font-style: italic; background-color: #f9f9f9; }
+.post-body pre { background-color: #2d2d2d; color: #f8f8f2; padding: 20px; border-radius: 5px; margin: 1.5em 0; overflow-x: auto; font-family: monospace; }
+.post-body ul, .post-body ol { margin-bottom: 1.2em; padding-left: 2em; }
+
 .post-footer { padding: 15px; border-top: 1px solid var(--color-border); text-align: right; }
 .post-footer .button { background-color: #f0f2f5; color: var(--color-dark-text); }
 .post-footer .button:hover { background-color: #e8e8e8; }
