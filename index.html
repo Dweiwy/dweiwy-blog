@@ -107,7 +107,6 @@
             navLinks.innerHTML = desktopNavHtml;
             mobileNavLinks.innerHTML = mobileNavHtml;
             
-            // Add event listeners for logout buttons if they exist
             const logoutButton = document.getElementById('logout-button');
             const mobileLogoutButton = document.getElementById('mobile-logout-button');
 
@@ -135,13 +134,18 @@
 
                 posts.forEach(post => {
                     const postElement = document.createElement('a');
-                    postElement.href = "#"; // In a real app, this would link to a single post page
+                    // UPDATED: Link to the new post.html page with the post ID
+                    postElement.href = `post.html?id=${post.id}`;
                     postElement.className = 'photo-item';
                     
                     const imageUrl = post.image_url || 'https://images.unsplash.com/photo-1554629947-334ff61d85dc?q=80&w=2072';
 
                     postElement.innerHTML = `
                         <img src="${imageUrl}" alt="${post.title}" loading="lazy">
+                         <div class="photo-item-overlay">
+                            <h3>${post.title}</h3>
+                            <span>By ${post.authorName}</span>
+                        </div>
                     `;
                     postsContainer.appendChild(postElement);
                 });
@@ -155,7 +159,6 @@
             updateNav();
             fetchPosts();
             
-            // Star generation
             const starsContainer = document.querySelector('.stars');
             for (let i = 0; i < 50; i++) {
                 let star = document.createElement('div');
