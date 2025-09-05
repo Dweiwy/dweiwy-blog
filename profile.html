@@ -25,7 +25,7 @@
         </main>
         
         <aside id="sidebar-container">
-             <!-- Sidebar will be loaded by script -->
+            <!-- Sidebar widgets for profile page -->
         </aside>
     </div>
 
@@ -35,205 +35,112 @@
         const profileContainer = document.getElementById('profile-container');
         const sidebarContainer = document.getElementById('sidebar-container');
         const loggedInUser = JSON.parse(localStorage.getItem('dweiwy_user'));
-        const profileId = new URLSearchParams(window.location.search).get('id');
 
-         function renderSidebar() {
-            let loginWidgetHtml = '';
-            if (!loggedInUser) {
-                loginWidgetHtml = `
+        async function fetchUserProfile() {
+            const params = new URLSearchParams(window.location.search);
+            const userId = params.get('id') || loggedInUser?.id;
+            if (!userId) { profileContainer.innerHTML = '<h2>User not found.</h2>'; return; }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users/${userId}`);
+                if (!response.ok) throw new Error('User not found.');
+                const profile = await response.json();
+                renderProfile(profile);
+                renderSidebar(profile);
+            } catch (error) {
+                profileContainer.innerHTML = `<h2>Error</h2><p>${error.message}</p>`;
+            }
+        }
+
+        function renderProfile(profile) {
+            document.title = `${profile.name}'s Profile - Dweiwy`;
+            const isOwnProfile = loggedInUser && loggedInUser.id === profile.id;
+
+            let editProfileHtml = '';
+            if (isOwnProfile) {
+                editProfileHtml = `
                     <div class="widget">
-                        <div class="widget-header"><h3>Log In</h3></div>
+                        <div class="widget-header"><h3>Edit Profile</h3></div>
                         <div class="widget-body">
-                            <form id="sidebar-login-form">
+                            <form id="edit-profile-form">
                                 <div class="form-group">
-                                    <label for="email">Your name or email address</label>
-                                    <input type="email" id="email" name="email" required>
+                                    <label for="userName">Display Name</label>
+                                    <input type="text" id="userName" value="${profile.name}" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="password">Password</label>
-                                    <input type="password" id="password" name="password" required>
+                                    <label for="userBio">Bio</label>
+                                    <textarea id="userBio" style="min-height: 100px;">${profile.bio || ''}</textarea>
                                 </div>
-                                <button type="submit" class="button">Log In</button>
+                                 <div class="form-group">
+                                    <label for="avatarUrl">Avatar URL</label>
+                                    <input type="text" id="avatarUrl" placeholder="Paste an image URL" value="${profile.avatar_url || ''}">
+                                </div>
+                                <button type="submit" class="button">Save</button>
                             </form>
                         </div>
-                        <div class="widget-footer">
-                            <a href="forgot-password.html">Forgot password?</a>
-                            <a href="register.html">Register</a>
-                        </div>
-                    </div>
-                `;
+                    </div>`;
             }
 
-            sidebarContainer.innerHTML = `
-                ${loginWidgetHtml}
-                <div class="widget">
-                    <div class="widget-header"><h3>Members Online</h3></div>
-                    <div class="widget-body">
-                        <ul class="members-list" id="members-online-list">
-                            <li>Loading...</li>
-                        </ul>
+            profileContainer.innerHTML = `
+                <div class="post-card profile-card">
+                    <div class="profile-header"></div>
+                    <div class="profile-avatar-wrapper">
+                        <img src="${profile.avatar_url || 'https://i.pravatar.cc/150'}" alt="${profile.name}" class="profile-avatar">
                     </div>
-                     <div class="widget-footer" id="online-stats">
-                        Loading stats...
+                    <div class="profile-info">
+                        <h1>${profile.name}</h1>
+                        <p class="profile-rank">${profile.role}</p>
+                        <p class="profile-bio">${profile.bio || 'No bio provided.'}</p>
                     </div>
                 </div>
+                ${editProfileHtml}
             `;
-            
-            if (!loggedInUser) {
-                const sidebarLoginForm = document.getElementById('sidebar-login-form');
-                if (sidebarLoginForm) {
-                     sidebarLoginForm.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        const email = e.target.email.value;
-                        const password = e.target.password.value;
-                        
-                        const response = await fetch(`${API_BASE_URL}/api/login`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email, password })
-                        });
-                        const data = await response.json();
-                        if (response.ok) {
-                            localStorage.setItem('dweiwy_user', JSON.stringify(data.user));
-                            window.location.reload();
-                        } else {
-                            alert(data.error || 'Login failed');
-                        }
-                    });
-                }
+            if (isOwnProfile) {
+                setupEditProfileForm(profile.id);
             }
         }
         
-        async function fetchActiveMembers() {
-            const listElement = document.getElementById('members-online-list');
-            const statsElement = document.getElementById('online-stats');
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/users/active`);
-                if (!response.ok) throw new Error('Failed to fetch active members.');
-                const activeMembers = await response.json();
-
-                if (activeMembers.length > 0) {
-                    listElement.innerHTML = activeMembers.map(member => `
-                        <li>
-                            <img src="${member.profile_picture_url || 'https://i.pravatar.cc/150?u=' + member.id}" alt="${member.name}" class="member-avatar">
-                            <div class="staff-info">
-                                <a href="profile.html?id=${member.id}"><strong>${member.name}</strong></a>
-                                <div class="role role-${member.role}">${member.role}</div>
-                            </div>
-                        </li>
-                    `).join('');
-                } else {
-                    listElement.innerHTML = '<li>No members currently active.</li>';
-                }
-                statsElement.innerHTML = `Total members: ${activeMembers.length}, Guests: 25`;
-
-            } catch (error) {
-                listElement.innerHTML = '<li>Could not load active members.</li>';
-                statsElement.innerHTML = 'Could not load stats.';
-            }
+        function renderSidebar(profile) {
+            sidebarContainer.innerHTML = `
+                <div class="widget">
+                    <div class="widget-header"><h3>User's Posts</h3></div>
+                    <div class="widget-body">
+                         <ul class="staff-list">
+                            ${profile.posts.length > 0 ? profile.posts.map(post => `
+                                <li><a href="post.html?id=${post.id}">${post.title}</a></li>
+                            `).join('') : '<li>No posts yet.</li>'}
+                        </ul>
+                    </div>
+                </div>
+            `;
         }
 
-        async function fetchProfile() {
-            if (!profileId) {
-                profileContainer.innerHTML = '<p>Error: No profile ID provided.</p>';
-                return;
-            }
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/users/${profileId}`);
-                if (!response.ok) throw new Error('User not found.');
-                const profile = await response.json();
-
-                document.title = `${profile.name} - Dweiwy`;
+        function setupEditProfileForm(userId) {
+            const form = document.getElementById('edit-profile-form');
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = document.getElementById('userName').value;
+                const bio = document.getElementById('userBio').value;
+                const avatar_url = document.getElementById('avatarUrl').value;
                 
-                let editProfileForm = '';
-                if(loggedInUser && loggedInUser.id === profile.id) {
-                    editProfileForm = `
-                        <div class="widget">
-                            <div class="widget-header"><h3>Edit Your Profile</h3></div>
-                            <div class="widget-body">
-                                <form id="edit-profile-form">
-                                    <div class="form-group">
-                                        <label for="name">Display Name</label>
-                                        <input type="text" id="name" value="${profile.name}" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="bio">Bio</label>
-                                        <textarea id="bio">${profile.bio || ''}</textarea>
-                                    </div>
-                                     <div class="form-group">
-                                        <label for="pfp">Profile Picture URL</label>
-                                        <input type="url" id="pfp" value="${profile.profile_picture_url || ''}">
-                                    </div>
-                                    <button type="submit" class="button">Save Changes</button>
-                                </form>
-                            </div>
-                        </div>
-                    `;
+                const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, bio, avatar_url })
+                });
+                const data = await response.json();
+
+                // Update localStorage and refresh the page to show changes
+                if (response.ok) {
+                    localStorage.setItem('dweiwy_user', JSON.stringify(data.user));
+                    window.location.reload();
+                } else {
+                    alert('Failed to update profile.');
                 }
-
-                profileContainer.innerHTML = `
-                    <div class="widget profile-card">
-                        <div class="profile-header"></div>
-                        <div class="profile-avatar-wrapper">
-                            <img src="${profile.profile_picture_url || 'https://i.pravatar.cc/150?u=' + profile.id}" alt="${profile.name}" class="profile-avatar">
-                        </div>
-                        <div class="profile-info">
-                            <h1>${profile.name}</h1>
-                            <p class="profile-rank">${profile.role}</p>
-                            <p class="profile-bio">${profile.bio || 'No bio yet.'}</p>
-                        </div>
-                    </div>
-
-                    <div class="widget">
-                        <div class="widget-header"><h3>${profile.name}'s Posts</h3></div>
-                        <div class="widget-body">
-                            <ul class="members-list">
-                                ${profile.posts.length > 0 ? profile.posts.map(post => `
-                                    <li><a href="post.html?id=${post.id}">${post.title}</a></li>
-                                `).join('') : '<li>No posts yet.</li>'}
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    ${editProfileForm}
-                `;
-
-                if(loggedInUser && loggedInUser.id === profile.id) {
-                    const editForm = document.getElementById('edit-profile-form');
-                    editForm.addEventListener('submit', handleProfileUpdate);
-                }
-
-            } catch (error) {
-                profileContainer.innerHTML = `<p>Error: ${error.message}</p>`;
-            }
-        }
-
-        async function handleProfileUpdate(e) {
-            e.preventDefault();
-            const name = document.getElementById('name').value;
-            const bio = document.getElementById('bio').value;
-            const pfp = document.getElementById('pfp').value;
-
-            const response = await fetch(`${API_BASE_URL}/api/users/${profileId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, bio, profile_picture_url: pfp })
             });
-            const data = await response.json();
-            if (response.ok) {
-                localStorage.setItem('dweiwy_user', JSON.stringify(data.user)); // Update local storage
-                alert('Profile updated!');
-                window.location.reload();
-            } else {
-                alert(`Error: ${data.error}`);
-            }
         }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchProfile();
-            renderSidebar();
-            fetchActiveMembers();
-        });
+        
+        document.addEventListener('DOMContentLoaded', fetchUserProfile);
     </script>
 </body>
 </html>
