@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dweiwy - A Personal Blog</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold text-gray-800">Dweiwy</a>
+            <div id="nav-links">
+                <!-- Links will be dynamically inserted here -->
+                <a href="login.html" class="text-gray-600 hover:text-indigo-600 px-3 py-2">Login</a>
+                <a href="register.html" class="text-white bg-indigo-600 hover:bg-indigo-700 rounded-md px-4 py-2">Register</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-12">Latest Posts</h1>
+        
+        <div id="posts-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Blog posts will be dynamically inserted here -->
+            <p id="loading-message" class="text-center col-span-full">Loading posts...</p>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE_URL = 'https://dweiwy-backend.ronandreicm.workers.dev';
+        const postsContainer = document.getElementById('posts-container');
+        const navLinks = document.getElementById('nav-links');
+        const loadingMessage = document.getElementById('loading-message');
+
+        // Function to update navigation based on login status
+        function updateNav() {
+            const user = JSON.parse(localStorage.getItem('dweiwy_user'));
+            if (user && user.id) {
+                navLinks.innerHTML = `
+                    <a href="create-post.html" class="text-white bg-indigo-600 hover:bg-indigo-700 rounded-md px-4 py-2">Create Post</a>
+                    <button id="logout-button" class="text-gray-600 hover:text-indigo-600 px-3 py-2">Logout</button>
+                `;
+                const logoutButton = document.getElementById('logout-button');
+                logoutButton.addEventListener('click', () => {
+                    localStorage.removeItem('dweiwy_user');
+                    window.location.href = 'index.html'; // Refresh the page
+                });
+            } else {
+                navLinks.innerHTML = `
+                    <a href="login.html" class="text-gray-600 hover:text-indigo-600 px-3 py-2">Login</a>
+                    <a href="register.html" class="text-white bg-indigo-600 hover:bg-indigo-700 rounded-md px-4 py-2">Register</a>
+                `;
+            }
+        }
+
+        // Function to fetch and display posts
+        async function fetchPosts() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/posts`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch posts.');
+                }
+                const posts = await response.json();
+                
+                postsContainer.innerHTML = ''; // Clear loading message
+
+                if (posts.length === 0) {
+                    postsContainer.innerHTML = '<p class="text-center col-span-full">No posts have been made yet. Check back soon!</p>';
+                    return;
+                }
+
+                posts.forEach(post => {
+                    const postElement = document.createElement('div');
+                    postElement.className = 'bg-white rounded-lg shadow-xl overflow-hidden';
+                    
+                    const formattedDate = new Date(post.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+
+                    // Use a placeholder if image_url is missing
+                    const imageUrl = post.image_url || 'https://images.unsplash.com/photo-1554629947-334ff61d85dc?q=80&w=2072';
+
+                    postElement.innerHTML = `
+                        <img class="w-full h-56 object-cover" src="${imageUrl}" alt="${post.title}">
+                        <div class="p-6">
+                            <h2 class="font-bold text-2xl mb-2 text-gray-800">${post.title}</h2>
+                            <p class="text-gray-700 text-base mb-4">
+                                ${post.content.substring(0, 100)}... 
+                            </p>
+                            <div class="flex items-center">
+                                <div class="text-sm">
+                                    <p class="text-gray-900 leading-none font-semibold">${post.authorName}</p>
+                                    <p class="text-gray-600">${formattedDate}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    postsContainer.appendChild(postElement);
+                });
+
+            } catch (error) {
+                loadingMessage.textContent = 'Error loading posts. Please try refreshing the page.';
+                loadingMessage.classList.add('text-red-600');
+            }
+        }
+
+        // Run functions when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            updateNav();
+            fetchPosts();
+        });
+    </script>
+</body>
+</html>
+
