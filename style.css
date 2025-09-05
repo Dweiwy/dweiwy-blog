@@ -2,23 +2,18 @@
 :root {
     --font-heading: 'Playfair Display', serif;
     --font-body: 'Montserrat', sans-serif;
-    --color-background: #f0f8fa; /* Lightest blue from gradient */
-    --color-surface: #ffffff;    /* White for cards and surfaces */
+    --color-background: #f0f8fa;
+    --color-surface: #ffffff;
     --color-dark: #2c3e50;
     --color-light-text: #6c7a89;
     --color-accent: #3498db;
     --color-border: #eaf2f8;
+    --color-danger: #e74c3c;
+    --color-admin: #9b59b6;
 }
 
 html { scroll-behavior: smooth; }
-
-body {
-    font-family: var(--font-body);
-    color: var(--color-dark);
-    background-color: var(--color-background);
-    margin: 0;
-    padding-top: 80px; /* Space for fixed header */
-}
+body { font-family: var(--font-body); color: var(--color-dark); background-color: var(--color-background); margin: 0; padding-top: 80px; }
 
 /* --- General Layout & Components --- */
 .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
@@ -30,38 +25,37 @@ a { color: var(--color-accent); text-decoration: none; transition: color 0.3s ea
 a:hover { color: var(--color-dark); }
 .button { display: inline-block; padding: 12px 28px; background-color: var(--color-accent); color: white; border-radius: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; border: none; cursor: pointer; transition: background-color 0.3s ease, transform 0.2s ease; }
 .button:hover { background-color: #2980b9; transform: translateY(-2px); }
-.delete-button { background-color: #e74c3c; }
+.delete-button { background-color: var(--color-danger); }
 .delete-button:hover { background-color: #c0392b; }
 
 /* --- Header --- */
 #main-header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1); padding: 15px 0; }
 .main-nav { display: flex; justify-content: space-between; align-items: center; }
 .nav-brand { font-family: var(--font-heading); font-size: 1.8em; font-weight: 700; }
-.desktop-nav { list-style: none; margin: 0; padding: 0; display: flex; gap: 30px; }
+.desktop-nav { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; gap: 30px; }
 .desktop-nav a, .logout-button { color: var(--color-dark); font-weight: 600; font-size: 0.9em; padding-bottom: 5px; border-bottom: 2px solid transparent; text-transform: uppercase; letter-spacing: 1px; }
 .desktop-nav a:hover, .logout-button:hover { color: var(--color-accent); border-bottom-color: var(--color-accent); }
 .logout-button { background: none; border: none; cursor: pointer; font-family: var(--font-body); }
 
-/* --- Posts Grid (Homepage) --- */
-.posts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
-.post-card { background-color: var(--color-surface); border-radius: 10px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.08); transition: transform 0.3s ease, box-shadow 0.3s ease; }
-.post-card:hover { transform: translateY(-5px); box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
-.post-card-image { width: 100%; height: 200px; object-fit: cover; display: block; }
-.post-card-content { padding: 20px; }
-.post-card-content h3 { margin: 0 0 10px 0; font-size: 1.4em; }
-.post-card-meta { font-size: 0.9em; color: var(--color-light-text); }
-
-/* --- Full Post Page Layout --- */
+/* --- Full Post Page & Content Styling --- */
 .post-layout { display: grid; grid-template-columns: 1fr; gap: 40px; }
 @media (min-width: 820px) { .post-layout { grid-template-columns: 250px 1fr; } }
 .post-sidebar .author-card { background-color: var(--color-surface); border-radius: 10px; padding: 20px; text-align: center; position: sticky; top: 110px; box-shadow: 0 4px 15px rgba(0,0,0,0.07); }
 .author-avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--color-accent); margin: 0 auto 15px; object-fit: cover; }
 .author-card h4 { margin: 0; font-size: 1.3em; }
+.author-card .author-rank { font-size: 0.9em; font-weight: 600; color: var(--color-accent); text-transform: capitalize; margin: 4px 0; }
 .author-card p { font-size: 0.9em; color: var(--color-light-text); margin: 5px 0 0 0; }
-.post-main { background-color: var(--color-surface); border-radius: 10px; padding: 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.07); }
+.post-main { background-color: var(--color-surface); border-radius: 10px; padding: 30px 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.07); }
 .post-title { font-size: 3em; margin: 0 0 20px 0; line-height: 1.2; }
 .post-cover-image { width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px; margin-bottom: 30px; }
+/* --- Post Content Styling --- */
 .post-content { line-height: 1.8; font-size: 1.1em; }
+.post-content > *:first-child { margin-top: 0; }
+.post-content h1, .post-content h2, .post-content h3 { margin: 2em 0 0.8em 0; line-height: 1.3; }
+.post-content p { margin-bottom: 1.2em; }
+.post-content a { text-decoration: underline; }
+.post-content blockquote { border-left: 4px solid var(--color-accent); margin: 1.5em 0; padding: 0.5em 1.5em; color: var(--color-light-text); font-style: italic; }
+.post-content pre { background-color: #2d2d2d; color: #f8f8f2; border-radius: 8px; padding: 20px; margin: 1.5em 0; overflow-x: auto; font-family: 'Courier New', Courier, monospace; font-size: 0.9em; }
 
 /* --- Profile Page --- */
 .profile-layout { display: grid; grid-template-columns: 1fr; gap: 40px; }
@@ -69,26 +63,32 @@ a:hover { color: var(--color-dark); }
 .profile-sidebar { text-align: center; }
 .profile-avatar { width: 150px; height: 150px; border-radius: 50%; border: 4px solid var(--color-accent); margin-bottom: 20px; object-fit: cover; }
 .profile-rank { font-size: 1.1em; color: var(--color-accent); text-transform: capitalize; font-weight: 600; }
+.profile-bio { margin-top: 15px; color: var(--color-light-text); }
 .profile-main { background-color: var(--color-surface); border-radius: 10px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.07); }
 .profile-post-list { list-style: none; padding: 0; margin: 0; }
 .profile-post-list li { border-bottom: 1px solid var(--color-border); }
+.profile-post-list li:last-child { border-bottom: none; }
 .profile-post-list li a { display: block; padding: 15px; font-weight: 600; }
 .profile-edit-section { margin-top: 40px; padding-top: 30px; border-top: 1px solid var(--color-border); }
+.profile-edit-section textarea { width: 100%; min-height: 120px; padding: 14px; background-color: var(--color-background); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-dark); font-size: 1em; font-family: var(--font-body); box-sizing: border-box; resize: vertical;}
+
 
 /* --- Comments Section --- */
 .comments-section { margin-top: 50px; padding-top: 40px; border-top: 1px solid var(--color-border); }
 .comment-list { display: flex; flex-direction: column; gap: 25px; margin-bottom: 40px; }
 .comment-item { display: flex; gap: 15px; }
-.comment-avatar { width: 50px; height: 50px; border-radius: 50%; }
+.comment-avatar { width: 50px; height: 50px; border-radius: 50%; flex-shrink: 0; }
 .comment-content { flex: 1; }
-.comment-author { font-weight: 600; margin: 0 0 5px 0; }
+.comment-author { font-weight: 600; margin: 0 0 5px 0; display: flex; align-items: center; gap: 8px; }
 .comment-author a { color: var(--color-dark); }
-.comment-author .author-badge { font-size: 0.75em; background-color: var(--color-accent); color: white; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
+.author-badge, .admin-badge { font-size: 0.75em; color: white; padding: 2px 6px; border-radius: 4px; }
+.author-badge { background-color: var(--color-accent); }
+.admin-badge { background-color: var(--color-admin); }
 .comment-content p { margin: 0; }
-.comment-form textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; font-family: var(--font-body); font-size: 1em; margin-bottom: 15px; box-sizing: border-box; }
+.comment-form textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; font-family: var(--font-body); font-size: 1em; margin-bottom: 15px; box-sizing: border-box; resize: vertical;}
 .login-prompt { text-align: center; padding: 20px; background-color: var(--color-border); border-radius: 8px; }
 
-/* --- Forms & Rich Text Editor --- */
+/* --- Forms & Rich Text Editor (re-used styles) --- */
 .form-container { max-width: 550px; margin: 0 auto; background-color: var(--color-surface); padding: 40px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
 .form-group { margin-bottom: 20px; }
 .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--color-light-text); }
