@@ -4,117 +4,169 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dweiwy - A Personal Blog</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-100">
+<body>
 
-    <!-- Header -->
-    <header class="bg-white shadow-md">
-        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="index.html" class="text-2xl font-bold text-gray-800">Dweiwy</a>
-            <div id="nav-links">
+    <div class="stars"></div>
+
+    <header id="main-header">
+        <nav class="main-nav">
+            <a href="index.html" class="nav-brand">Dweiwy</a>
+            <ul class="desktop-nav" id="nav-links">
                 <!-- Links will be dynamically inserted here -->
-                <a href="login.html" class="text-gray-600 hover:text-indigo-600 px-3 py-2">Login</a>
-                <a href="register.html" class="text-white bg-indigo-600 hover:bg-indigo-700 rounded-md px-4 py-2">Register</a>
-            </div>
+                <li><a href="login.html">Login</a></li>
+                <li><a href="register.html">Register</a></li>
+            </ul>
+             <button class="hamburger" id="hamburger-menu" aria-label="Open menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
         </nav>
     </header>
+    
+    <nav class="mobile-nav" id="mobile-menu-links">
+         <!-- Mobile links will be dynamically inserted here -->
+    </nav>
 
-    <!-- Main Content -->
-    <main class="container mx-auto px-6 py-8">
-        <h1 class="text-4xl font-bold text-center text-gray-800 mb-12">Latest Posts</h1>
-        
-        <div id="posts-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Blog posts will be dynamically inserted here -->
-            <p id="loading-message" class="text-center col-span-full">Loading posts...</p>
+
+    <section id="hero">
+        <div class="hero-content">
+            <h1>Welcome to Dweiwy</h1>
+            <p>A space for thoughts, stories, and ideas.</p>
+        </div>
+        <a href="#posts-section" class="scroll-down" aria-label="Scroll down to posts"></a>
+    </section>
+
+    <main id="posts-section" class="content-section">
+        <div class="container">
+            <h2>Latest Posts</h2>
+            <p class="section-subtitle">Discover the most recent articles and updates.</p>
+            <div id="posts-container" class="photo-gallery">
+                <!-- Blog posts will be dynamically inserted here -->
+                <p id="loading-message">Loading posts...</p>
+            </div>
         </div>
     </main>
+    
+    <footer>
+        <p>&copy; 2025 Dweiwy. All Rights Reserved.</p>
+    </footer>
 
     <script>
+        // --- API and DOM Elements ---
         const API_BASE_URL = 'https://dweiwy-backend.ronandreicm.workers.dev';
         const postsContainer = document.getElementById('posts-container');
         const navLinks = document.getElementById('nav-links');
+        const mobileNavLinks = document.getElementById('mobile-menu-links');
         const loadingMessage = document.getElementById('loading-message');
 
-        // Function to update navigation based on login status
+        // --- Navigation and Mobile Menu Logic ---
+        const header = document.getElementById('main-header');
+        const hamburger = document.getElementById('hamburger-menu');
+        
+        window.addEventListener('scroll', () => {
+            header.classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            mobileNavLinks.classList.toggle('active');
+        });
+        
+        // --- Dynamic Content Functions ---
+
         function updateNav() {
             const user = JSON.parse(localStorage.getItem('dweiwy_user'));
+            let desktopNavHtml = '';
+            let mobileNavHtml = '';
+
             if (user && user.id) {
-                navLinks.innerHTML = `
-                    <a href="create-post.html" class="text-white bg-indigo-600 hover:bg-indigo-700 rounded-md px-4 py-2">Create Post</a>
-                    <button id="logout-button" class="text-gray-600 hover:text-indigo-600 px-3 py-2">Logout</button>
+                desktopNavHtml = `
+                    <li><a href="create-post.html">Create Post</a></li>
+                    <li><button id="logout-button" class="logout-button">Logout</button></li>
                 `;
-                const logoutButton = document.getElementById('logout-button');
-                logoutButton.addEventListener('click', () => {
-                    localStorage.removeItem('dweiwy_user');
-                    window.location.href = 'index.html'; // Refresh the page
-                });
+                mobileNavHtml = `
+                    <a href="create-post.html">Create Post</a>
+                    <a href="#" id="mobile-logout-button">Logout</a>
+                `;
             } else {
-                navLinks.innerHTML = `
-                    <a href="login.html" class="text-gray-600 hover:text-indigo-600 px-3 py-2">Login</a>
-                    <a href="register.html" class="text-white bg-indigo-600 hover:bg-indigo-700 rounded-md px-4 py-2">Register</a>
+                desktopNavHtml = `
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="register.html">Register</a></li>
+                `;
+                mobileNavHtml = `
+                    <a href="login.html">Login</a>
+                    <a href="register.html">Register</a>
                 `;
             }
+            navLinks.innerHTML = desktopNavHtml;
+            mobileNavLinks.innerHTML = mobileNavHtml;
+            
+            // Add event listeners for logout buttons if they exist
+            const logoutButton = document.getElementById('logout-button');
+            const mobileLogoutButton = document.getElementById('mobile-logout-button');
+
+            const handleLogout = () => {
+                localStorage.removeItem('dweiwy_user');
+                window.location.href = 'index.html';
+            };
+
+            if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+            if (mobileLogoutButton) mobileLogoutButton.addEventListener('click', handleLogout);
         }
 
-        // Function to fetch and display posts
         async function fetchPosts() {
             try {
                 const response = await fetch(`${API_BASE_URL}/api/posts`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch posts.');
-                }
-                const posts = await response.json();
+                if (!response.ok) throw new Error('Failed to fetch posts.');
                 
-                postsContainer.innerHTML = ''; // Clear loading message
+                const posts = await response.json();
+                postsContainer.innerHTML = ''; 
 
                 if (posts.length === 0) {
-                    postsContainer.innerHTML = '<p class="text-center col-span-full">No posts have been made yet. Check back soon!</p>';
+                    postsContainer.innerHTML = '<p>No posts have been made yet. Check back soon!</p>';
                     return;
                 }
 
                 posts.forEach(post => {
-                    const postElement = document.createElement('div');
-                    postElement.className = 'bg-white rounded-lg shadow-xl overflow-hidden';
+                    const postElement = document.createElement('a');
+                    postElement.href = "#"; // In a real app, this would link to a single post page
+                    postElement.className = 'photo-item';
                     
-                    const formattedDate = new Date(post.created_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    });
-
-                    // Use a placeholder if image_url is missing
                     const imageUrl = post.image_url || 'https://images.unsplash.com/photo-1554629947-334ff61d85dc?q=80&w=2072';
 
                     postElement.innerHTML = `
-                        <img class="w-full h-56 object-cover" src="${imageUrl}" alt="${post.title}">
-                        <div class="p-6">
-                            <h2 class="font-bold text-2xl mb-2 text-gray-800">${post.title}</h2>
-                            <p class="text-gray-700 text-base mb-4">
-                                ${post.content.substring(0, 100)}... 
-                            </p>
-                            <div class="flex items-center">
-                                <div class="text-sm">
-                                    <p class="text-gray-900 leading-none font-semibold">${post.authorName}</p>
-                                    <p class="text-gray-600">${formattedDate}</p>
-                                </div>
-                            </div>
-                        </div>
+                        <img src="${imageUrl}" alt="${post.title}" loading="lazy">
                     `;
                     postsContainer.appendChild(postElement);
                 });
 
             } catch (error) {
                 loadingMessage.textContent = 'Error loading posts. Please try refreshing the page.';
-                loadingMessage.classList.add('text-red-600');
             }
         }
 
-        // Run functions when the page loads
         document.addEventListener('DOMContentLoaded', () => {
             updateNav();
             fetchPosts();
+            
+            // Star generation
+            const starsContainer = document.querySelector('.stars');
+            for (let i = 0; i < 50; i++) {
+                let star = document.createElement('div');
+                star.className = 'star';
+                star.style.width = `${Math.random() * 3}px`;
+                star.style.height = star.style.width;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 4}s`;
+                starsContainer.appendChild(star);
+            }
         });
     </script>
 </body>

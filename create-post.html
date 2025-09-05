@@ -3,54 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create New Post - Dweiwy</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>Create Post - Dweiwy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-100">
+<body>
 
-    <!-- Header -->
-    <header class="bg-white shadow-md">
-        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="index.html" class="text-2xl font-bold text-gray-800">Dweiwy</a>
-            <!-- This nav would change for logged-in users -->
-            <div>
-                <a href="create-post.html" class="text-white bg-indigo-600 hover:bg-indigo-700 rounded-md px-4 py-2">New Post</a>
-                <a href="#" class="text-gray-600 hover:text-indigo-600 px-3 py-2">Logout</a>
-            </div>
+    <div class="stars"></div>
+
+    <header id="main-header" class="scrolled">
+        <nav class="main-nav">
+            <a href="index.html" class="nav-brand">Dweiwy</a>
+             <ul class="desktop-nav" id="nav-links">
+                <!-- Nav will be updated by script -->
+            </ul>
         </nav>
     </header>
+    
+    <main id="rsvp" class="content-section">
+        <div class="container">
+            <h2>Create a New Post</h2>
+            <p class="section-subtitle">Share your thoughts with the world.</p>
 
-    <!-- Main Content -->
-    <main class="container mx-auto px-6 py-12 flex justify-center">
-        <div class="w-full max-w-2xl">
-            <div class="bg-white rounded-lg shadow-xl p-8">
-                <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Create a New Post</h2>
-                
-                <form>
-                    <div class="mb-4">
-                        <label for="title" class="block text-gray-700 text-sm font-bold mb-2">Post Title</label>
-                        <input type="text" id="title" name="title" class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Your amazing title">
-                    </div>
-                     <div class="mb-4">
-                        <label for="image_url" class="block text-gray-700 text-sm font-bold mb-2">Cover Image URL (Optional)</label>
-                        <input type="url" id="image_url" name="image_url" class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="https://example.com/image.jpg">
-                    </div>
-                    <div class="mb-6">
-                        <label for="content" class="block text-gray-700 text-sm font-bold mb-2">Content</label>
-                        <textarea id="content" name="content" rows="10" class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your heart out..."></textarea>
-                    </div>
-                    <div class="flex items-center justify-end">
-                        <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-300" type="button">
-                            Publish Post
-                        </button>
-                    </div>
-                </form>
-                
-            </div>
+            <form id="rsvp-form">
+                <label for="title">Post Title</label>
+                <input type="text" id="title" name="title" placeholder="Your amazing title" required>
+
+                <label for="image_url">Cover Image URL (Optional)</label>
+                <input type="text" id="image_url" name="image_url" placeholder="https://example.com/image.jpg">
+
+                <label for="content">Content</label>
+                <textarea id="content" name="content" placeholder="Write your heart out..." required style="height: 200px; width: 100%; padding: 14px; border: 1px solid #dcdcdc; border-radius: 8px; font-size: 1.05em; font-family: var(--font-body); box-sizing: border-box;"></textarea>
+
+                <div id="form-status"></div>
+
+                <button type="submit" id="submit-button">Publish Post</button>
+            </form>
         </div>
     </main>
 
+    <footer>
+        <p>&copy; 2025 Dweiwy. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        const API_BASE_URL = 'https://dweiwy-backend.ronandreicm.workers.dev';
+        const form = document.getElementById('rsvp-form');
+        const submitButton = document.getElementById('submit-button');
+        const messageArea = document.getElementById('form-status');
+        const navLinks = document.getElementById('nav-links');
+        let currentUser = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            currentUser = JSON.parse(localStorage.getItem('dweiwy_user'));
+            
+            if (!currentUser || !currentUser.id) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            navLinks.innerHTML = `
+                <li><a href="create-post.html">Create Post</a></li>
+                <li><button id="logout-button" class="logout-button">Logout</button></li>
+            `;
+            const logoutButton = document.getElementById('logout-button');
+            logoutButton.addEventListener('click', () => {
+                localStorage.removeItem('dweiwy_user');
+                window.location.href = 'index.html';
+            });
+            
+             // Star generation
+            const starsContainer = document.querySelector('.stars');
+            for (let i = 0; i < 50; i++) {
+                let star = document.createElement('div');
+                star.className = 'star';
+                star.style.width = `${Math.random() * 3}px`;
+                star.style.height = star.style.width;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 4}s`;
+                starsContainer.appendChild(star);
+            }
+        });
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            messageArea.textContent = '';
+            submitButton.disabled = true;
+            submitButton.textContent = 'Publishing...';
+
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+            const image_url = document.getElementById('image_url').value;
+
+            if (!title || !content) {
+                displayMessage('Title and content are required.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/posts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title,
+                        content,
+                        image_url: image_url || null,
+                        author_id: currentUser.id
+                    }),
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Failed to create post.');
+
+                displayMessage('Post created successfully! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+
+            } catch (error) {
+                displayMessage(error.message, 'error');
+            }
+        });
+
+        function displayMessage(message, type) {
+            messageArea.textContent = message;
+            messageArea.style.color = type === 'success' ? 'green' : 'red';
+            submitButton.disabled = false;
+            submitButton.textContent = 'Publish Post';
+        }
+    </script>
 </body>
 </html>
 
