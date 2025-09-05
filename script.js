@@ -17,10 +17,8 @@ function updateNav() {
             <li><button id="logout-button" class="logout-button">Logout</button></li>
         `;
     } else {
-        navHtml = `
-            <li><a href="login.html">Login</a></li>
-            <li><a href="register.html">Register</a></li>
-        `;
+        // In the new design, login/register are in the sidebar, so desktop nav can be empty
+        navHtml = `<li><a href="login.html">Login / Register</a></li>`;
     }
     navLinks.innerHTML = navHtml;
 
@@ -32,7 +30,6 @@ function updateNav() {
         });
     }
 }
-
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {

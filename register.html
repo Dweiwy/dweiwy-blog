@@ -6,94 +6,83 @@
     <title>Register - Dweiwy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="top-bar">Join the Dweiwy Community Today!</div>
     <header id="main-header">
-         <nav class="main-nav container">
+        <nav class="main-nav">
             <a href="index.html" class="nav-brand">Dweiwy</a>
-            <ul class="desktop-nav" id="nav-links">
-                 <!-- Links dynamically inserted by script.js -->
-            </ul>
+            <ul class="desktop-nav" id="nav-links"></ul>
+            <div class="hamburger"><span></span><span></span><span></span></div>
         </nav>
     </header>
     
-    <main class="content-section">
-        <div class="container">
-            <form id="register-form" class="form-container">
-                <h2>Create Your Account</h2>
-                 <div class="form-group">
-                    <label for="name">Full Name</label>
-                    <input type="text" id="name" required>
+    <div class="container">
+        <main>
+             <div class="post-card">
+                 <div class="post-main-content">
+                    <h1>Create an Account</h1>
+                 </div>
+             </div>
+        </main>
+        <aside>
+             <div class="widget">
+                <div class="widget-header"><h3>Register</h3></div>
+                <div class="widget-body">
+                    <form id="register-form">
+                        <div id="form-status" class="form-status"></div>
+                        <div class="form-group">
+                            <label for="name">Display Name</label>
+                            <input type="text" id="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" required>
+                        </div>
+                        <button type="submit" class="button">Create Account</button>
+                    </form>
+                     <p style="text-align:center; margin-top: 15px; font-size: 0.9em;">
+                        Already have an account? <a href="login.html">Log in</a>.
+                    </p>
                 </div>
-                <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" required>
-                </div>
-                <div id="form-status" class="form-status"></div>
-                <button type="submit" id="submit-button" class="button">Create Account</button>
-                <p class="form-link">
-                    Already have an account? <a href="login.html">Log in</a>.
-                </p>
-            </form>
-        </div>
-    </main>
-
-    <footer>
-        <div class="container"><p>&copy; 2025 Dweiwy. All Rights Reserved.</p></div>
-    </footer>
+            </div>
+        </aside>
+    </div>
 
     <script src="script.js"></script>
     <script>
         const API_BASE_URL = 'https://dweiwy-backend.ronandreicm.workers.dev';
         const form = document.getElementById('register-form');
-        const submitButton = document.getElementById('submit-button');
-        const messageArea = document.getElementById('form-status');
+        const statusEl = document.getElementById('form-status');
 
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            messageArea.textContent = '';
-            submitButton.disabled = true;
-            submitButton.textContent = 'Creating Account...';
-
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            statusEl.textContent = 'Creating account...';
 
-            if (!name || !email || !password) {
-                displayMessage('Please fill out all fields.', 'error');
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password }),
-                });
-
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Registration failed.');
-
-                displayMessage('Registration successful! Redirecting to login...', 'success');
-                setTimeout(() => { window.location.href = 'login.html'; }, 2000);
-
-            } catch (error) {
-                displayMessage(error.message, 'error');
+            const response = await fetch(`${API_BASE_URL}/api/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                statusEl.textContent = 'Success! Redirecting to login...';
+                statusEl.style.color = 'green';
+                setTimeout(() => window.location.href = 'login.html', 2000);
+            } else {
+                statusEl.textContent = data.error || 'Registration failed.';
+                statusEl.style.color = 'red';
             }
         });
-
-        function displayMessage(message, type) {
-            messageArea.textContent = message;
-            messageArea.style.color = type === 'success' ? '#2ecc71' : '#e74c3c';
-            submitButton.disabled = false;
-            submitButton.textContent = 'Create Account';
-        }
     </script>
 </body>
 </html>

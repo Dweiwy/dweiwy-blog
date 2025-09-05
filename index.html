@@ -6,75 +6,126 @@
     <title>Dweiwy - A Personal Blog</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="top-bar">EVENT: Dweiwy Blog Launch | September 2025</div>
     <header id="main-header">
-        <nav class="main-nav container">
+        <nav class="main-nav">
             <a href="index.html" class="nav-brand">Dweiwy</a>
-            <ul class="desktop-nav" id="nav-links">
-                <!-- Links dynamically inserted by script.js -->
-            </ul>
+            <ul class="desktop-nav" id="nav-links"></ul>
+            <div class="hamburger"><span></span><span></span><span></span></div>
         </nav>
     </header>
-
-    <main class="content-section">
-        <div class="container">
-            <h2>Latest Posts</h2>
-            <div id="posts-container" class="posts-grid">
-                <p id="loading-message">Loading posts...</p>
-            </div>
-        </div>
-    </main>
     
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 Dweiwy. All Rights Reserved.</p>
-        </div>
-    </footer>
+    <div class="container">
+        <main id="posts-container">
+             <p id="loading-message">Loading posts...</p>
+             <!-- Posts will be loaded here -->
+        </main>
+        
+        <aside id="sidebar-container">
+            <!-- Sidebar widgets will be loaded here -->
+        </aside>
+    </div>
 
     <script src="script.js"></script>
     <script>
         const API_BASE_URL = 'https://dweiwy-backend.ronandreicm.workers.dev';
         const postsContainer = document.getElementById('posts-container');
-        const loadingMessage = document.getElementById('loading-message');
+        const sidebarContainer = document.getElementById('sidebar-container');
+        const loggedInUser = JSON.parse(localStorage.getItem('dweiwy_user'));
+
+        function renderSidebar() {
+            let loginWidgetHtml = '';
+            if (!loggedInUser) {
+                loginWidgetHtml = `
+                    <div class="widget">
+                        <div class="widget-header"><h3>Log In</h3></div>
+                        <div class="widget-body">
+                            <form action="login.html">
+                                <div class="form-group">
+                                    <label for="email">Your name or email address</label>
+                                    <input type="email" id="email" name="email" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="password">Password</label>
+                                    <input type="password" id="password" name="password" required>
+                                </div>
+                                <button type="submit" class="button">Log In</button>
+                            </form>
+                        </div>
+                    </div>
+                `;
+            }
+
+            sidebarContainer.innerHTML = `
+                ${loginWidgetHtml}
+                <div class="widget">
+                    <div class="widget-header"><h3>Staff Online</h3></div>
+                    <div class="widget-body">
+                        <ul class="staff-list">
+                            <li>
+                                <img src="https://i.pravatar.cc/150?u=admin" alt="Admin" class="staff-avatar">
+                                <div class="staff-info">
+                                    <strong>Admin</strong>
+                                    <div class="role role-admin">Site Admin</div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
 
         async function fetchPosts() {
             try {
                 const response = await fetch(`${API_BASE_URL}/api/posts`);
                 if (!response.ok) throw new Error('Failed to fetch posts.');
-                
                 const posts = await response.json();
                 postsContainer.innerHTML = ''; 
-
                 if (posts.length === 0) {
-                    postsContainer.innerHTML = '<p>No posts yet. Be the first!</p>';
-                    return;
+                    postsContainer.innerHTML = '<p>No posts yet.</p>'; return;
                 }
-
                 posts.forEach(post => {
-                    const postElement = document.createElement('a');
-                    postElement.href = `post.html?id=${post.id}`;
+                    const postElement = document.createElement('article');
                     postElement.className = 'post-card';
-                    
-                    const imageUrl = post.image_url || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070';
+                    const formattedDate = new Date(post.created_at);
+                    const month = formattedDate.toLocaleString('default', { month: 'short' }).toUpperCase();
+                    const day = formattedDate.getDate();
 
                     postElement.innerHTML = `
-                        <img src="${imageUrl}" alt="${post.title}" class="post-card-image">
-                        <div class="post-card-content">
-                            <h3>${post.title}</h3>
-                            <p class="post-card-meta">By ${post.authorName}</p>
+                        <header class="post-header">
+                            <div class="post-meta">
+                                By <a href="#">${post.authorName}</a>
+                            </div>
+                            <div class="post-date">
+                                <span class="month">${month}</span>
+                                <span class="day">${day}</span>
+                            </div>
+                        </header>
+                        <div class="post-main-content">
+                             <a href="post.html?id=${post.id}">
+                                <img src="${post.image_url || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070'}" alt="${post.title}" class="post-cover-image">
+                             </a>
+                             <h2 class="post-title"><a href="post.html?id=${post.id}">${post.title}</a></h2>
                         </div>
+                        <footer class="post-footer">
+                            <a href="post.html?id=${post.id}" class="button">Keep Reading</a>
+                        </footer>
                     `;
                     postsContainer.appendChild(postElement);
                 });
             } catch (error) {
-                if (loadingMessage) loadingMessage.textContent = 'Error loading posts.';
+                postsContainer.innerHTML = '<p>Error loading posts.</p>';
             }
         }
         
-        document.addEventListener('DOMContentLoaded', fetchPosts);
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchPosts();
+            renderSidebar();
+        });
     </script>
 </body>
 </html>

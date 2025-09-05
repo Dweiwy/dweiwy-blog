@@ -6,152 +6,140 @@
     <title>User Profile - Dweiwy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="top-bar">EVENT: Dweiwy Blog Launch | September 2025</div>
     <header id="main-header">
-        <nav class="main-nav container">
+        <nav class="main-nav">
             <a href="index.html" class="nav-brand">Dweiwy</a>
             <ul class="desktop-nav" id="nav-links"></ul>
+            <div class="hamburger"><span></span><span></span><span></span></div>
         </nav>
     </header>
     
-    <main class="content-section">
-        <div class="container" id="profile-container">
+    <div class="container">
+        <main id="profile-container">
             <p id="loading-message">Loading profile...</p>
-        </div>
-    </main>
-
-    <footer>
-        <div class="container"><p>&copy; 2025 Dweiwy. All Rights Reserved.</p></div>
-    </footer>
+        </main>
+        
+        <aside id="sidebar-container">
+            <!-- Sidebar widgets for profile page -->
+        </aside>
+    </div>
 
     <script src="script.js"></script>
     <script>
         const API_BASE_URL = 'https://dweiwy-backend.ronandreicm.workers.dev';
         const profileContainer = document.getElementById('profile-container');
-        const loadingMessage = document.getElementById('loading-message');
+        const sidebarContainer = document.getElementById('sidebar-container');
         const loggedInUser = JSON.parse(localStorage.getItem('dweiwy_user'));
 
         async function fetchUserProfile() {
             const params = new URLSearchParams(window.location.search);
-            const userIdFromUrl = params.get('id');
-            const userIdToFetch = userIdFromUrl || loggedInUser?.id;
-
-            if (!userIdToFetch) {
-                loadingMessage.innerHTML = '<h2>Error</h2><p>Could not find user.</p>';
-                return;
-            }
+            const userId = params.get('id') || loggedInUser?.id;
+            if (!userId) { profileContainer.innerHTML = '<h2>User not found.</h2>'; return; }
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/users/${userIdToFetch}`);
+                const response = await fetch(`${API_BASE_URL}/api/users/${userId}`);
                 if (!response.ok) throw new Error('User not found.');
-                
                 const profile = await response.json();
                 renderProfile(profile);
-
+                renderSidebar(profile);
             } catch (error) {
-                loadingMessage.innerHTML = `<h2>Error</h2><p>${error.message}</p>`;
+                profileContainer.innerHTML = `<h2>Error</h2><p>${error.message}</p>`;
             }
         }
 
         function renderProfile(profile) {
-             document.title = `${profile.name}'s Profile - Dweiwy`;
+            document.title = `${profile.name}'s Profile - Dweiwy`;
             const isOwnProfile = loggedInUser && loggedInUser.id === profile.id;
 
             let editProfileHtml = '';
             if (isOwnProfile) {
                 editProfileHtml = `
-                    <div class="profile-edit-section">
-                        <h3>Edit Your Profile</h3>
-                        <form id="edit-profile-form">
-                            <div class="form-group">
-                                <label for="userName">Display Name</label>
-                                <input type="text" id="userName" value="${profile.name}" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="userBio">Your Bio</label>
-                                <textarea id="userBio" required>${profile.bio || ''}</textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Avatar Image (Drag & Drop or Click)</label>
-                                <div class="file-drop-area" id="file-drop-area">
-                                    <p>Drop a new avatar here</p>
-                                    <input type="file" id="file-input" hidden accept="image/*">
+                    <div class="widget">
+                        <div class="widget-header"><h3>Edit Profile</h3></div>
+                        <div class="widget-body">
+                            <form id="edit-profile-form">
+                                <div class="form-group">
+                                    <label for="userName">Display Name</label>
+                                    <input type="text" id="userName" value="${profile.name}" required>
                                 </div>
-                                <input type="text" id="avatarUrl" placeholder="Or paste an image URL" value="${profile.avatar_url || ''}">
-                            </div>
-                            <div id="form-status" class="form-status"></div>
-                            <button type="submit" class="button">Save Changes</button>
-                        </form>
-                    </div>
-                `;
+                                <div class="form-group">
+                                    <label for="userBio">Bio</label>
+                                    <textarea id="userBio" style="min-height: 100px;">${profile.bio || ''}</textarea>
+                                </div>
+                                 <div class="form-group">
+                                    <label for="avatarUrl">Avatar URL</label>
+                                    <input type="text" id="avatarUrl" placeholder="Paste an image URL" value="${profile.avatar_url || ''}">
+                                </div>
+                                <button type="submit" class="button">Save</button>
+                            </form>
+                        </div>
+                    </div>`;
             }
 
             profileContainer.innerHTML = `
-                <div class="profile-layout">
-                    <aside class="profile-sidebar">
+                <div class="post-card profile-card">
+                    <div class="profile-header"></div>
+                    <div class="profile-avatar-wrapper">
                         <img src="${profile.avatar_url || 'https://i.pravatar.cc/150'}" alt="${profile.name}" class="profile-avatar">
+                    </div>
+                    <div class="profile-info">
                         <h1>${profile.name}</h1>
                         <p class="profile-rank">${profile.role}</p>
                         <p class="profile-bio">${profile.bio || 'No bio provided.'}</p>
-                    </aside>
-                    <main class="profile-main">
-                        <h2>User Posts (${profile.posts.length})</h2>
-                        <ul class="profile-post-list">
-                            ${profile.posts.length > 0 ? profile.posts.map(post => `
-                                <li><a href="post.html?id=${post.id}">${post.title}</a></li>
-                            `).join('') : '<li>This user has not made any posts yet.</li>'}
-                        </ul>
-                        ${editProfileHtml}
-                    </main>
+                    </div>
                 </div>
+                ${editProfileHtml}
             `;
-
             if (isOwnProfile) {
                 setupEditProfileForm(profile.id);
             }
         }
         
+        function renderSidebar(profile) {
+            sidebarContainer.innerHTML = `
+                <div class="widget">
+                    <div class="widget-header"><h3>User's Posts</h3></div>
+                    <div class="widget-body">
+                         <ul class="staff-list">
+                            ${profile.posts.length > 0 ? profile.posts.map(post => `
+                                <li><a href="post.html?id=${post.id}">${post.title}</a></li>
+                            `).join('') : '<li>No posts yet.</li>'}
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+
         function setupEditProfileForm(userId) {
             const form = document.getElementById('edit-profile-form');
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const submitButton = form.querySelector('button');
-                const messageArea = document.getElementById('form-status');
-
-                submitButton.textContent = 'Saving...';
-                submitButton.disabled = true;
-
                 const name = document.getElementById('userName').value;
                 const bio = document.getElementById('userBio').value;
                 const avatar_url = document.getElementById('avatarUrl').value;
-                // Note: File upload via JS is complex and requires a service like R2.
-                // We'll update using the avatar_url for now.
+                
+                const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, bio, avatar_url })
+                });
+                const data = await response.json();
 
-                try {
-                    const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, bio, avatar_url })
-                    });
-                    const data = await response.json();
-                    if (!response.ok) throw new Error(data.error || 'Failed to update.');
-
-                    // Update localStorage and re-render the profile
+                // Update localStorage and refresh the page to show changes
+                if (response.ok) {
                     localStorage.setItem('dweiwy_user', JSON.stringify(data.user));
-                    renderProfile(data.user);
-                    
-                } catch(error) {
-                    messageArea.textContent = error.message;
-                    messageArea.style.color = '#e74c3c';
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'Save Changes';
+                    window.location.reload();
+                } else {
+                    alert('Failed to update profile.');
                 }
             });
         }
-
+        
         document.addEventListener('DOMContentLoaded', fetchUserProfile);
     </script>
 </body>
