@@ -7,109 +7,73 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
-    
-    <!-- Include the Quill library -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <style>
-        /* Custom styles for the editor */
-        #editor-container {
-            height: 350px;
-            background-color: #fff;
-            color: var(--color-dark);
-            border-radius: 8px;
-            border: 1px solid #dcdcdc;
-        }
-        .ql-toolbar {
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
-        }
-         .ql-container {
-            border-bottom-left-radius: 8px;
-            border-bottom-right-radius: 8px;
-        }
-        .file-drop-area {
-            border: 2px dashed #dcdcdc;
-            border-radius: 8px;
-            padding: 30px;
-            text-align: center;
-            color: #888;
-            margin-bottom: 25px;
-            transition: border-color 0.3s ease, background-color 0.3s ease;
-        }
-        .file-drop-area.dragover {
-             border-color: var(--color-accent);
-             background-color: #f0f8fa;
-        }
-    </style>
 </head>
 <body>
-
-    <div class="stars"></div>
-
-    <header id="main-header" class="scrolled">
-        <nav class="main-nav">
+    <header id="main-header">
+        <nav class="main-nav container">
             <a href="index.html" class="nav-brand">Dweiwy</a>
-             <ul class="desktop-nav" id="nav-links">
-                <!-- Nav will be updated by script -->
-            </ul>
+            <ul class="desktop-nav" id="nav-links"></ul>
         </nav>
     </header>
     
-    <main id="rsvp" class="content-section">
+    <main class="content-section">
         <div class="container">
             <h2>Create a New Post</h2>
-            <p class="section-subtitle">Share your thoughts with the world.</p>
-
-            <form id="create-post-form">
-                <label for="title">Post Title</label>
-                <input type="text" id="title" name="title" placeholder="Your amazing title" required>
-
-                <label for="image_url">Cover Image URL</label>
-                <input type="text" id="image_url" name="image_url" placeholder="https://example.com/your-cover-image.jpg">
-
-                <!-- Placeholder for future file uploads -->
-                <div class="file-drop-area" id="file-drop-area">
-                    <p>Drag & Drop a cover image here, or click to select a file (feature coming soon)</p>
-                    <input type="file" id="file-input" hidden>
+            <form id="create-post-form" class="form-container" style="max-width: 800px;">
+                <div class="form-group">
+                    <label for="title">Post Title</label>
+                    <input type="text" id="title" required>
                 </div>
 
-                <label for="editor-container">Content</label>
-                <!-- Create the editor container -->
-                <div id="editor-container"></div>
+                <div class="form-group">
+                    <label for="image_url">Cover Image URL</label>
+                    <input type="text" id="image_url" placeholder="Paste an image URL here">
+                </div>
 
-                <div id="form-status"></div>
-                <button type="submit" id="submit-button">Publish Post</button>
+                <div class="form-group">
+                     <label>Cover Image Upload (Feature Coming Soon)</label>
+                    <div class="file-drop-area" id="file-drop-area">
+                        <p>Drag & Drop a file here, or click to select</p>
+                         <input type="file" id="file-input" hidden accept="image/*">
+                    </div>
+                    <p id="file-name" style="text-align: center; margin-top: 10px;"></p>
+                </div>
+
+                <div class="form-group">
+                    <label>Content</label>
+                    <div id="editor-container"></div>
+                </div>
+
+                <div id="form-status" class="form-status"></div>
+                <button type="submit" id="submit-button" class="button">Publish Post</button>
             </form>
         </div>
     </main>
 
     <footer>
-        <p>&copy; 2025 Dweiwy. All Rights Reserved.</p>
+        <div class="container"><p>&copy; 2025 Dweiwy. All Rights Reserved.</p></div>
     </footer>
 
-    <!-- Include the Quill library -->
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-
+    <script src="script.js"></script>
     <script>
         const API_BASE_URL = 'https://dweiwy-backend.ronandreicm.workers.dev';
         const form = document.getElementById('create-post-form');
         const submitButton = document.getElementById('submit-button');
         const messageArea = document.getElementById('form-status');
-        const navLinks = document.getElementById('nav-links');
         let currentUser = null;
 
-        // Initialize Quill editor
         const quill = new Quill('#editor-container', {
             theme: 'snow',
             modules: {
                 toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
+                    [{ 'header': [1, 2, false] }],
                     ['bold', 'italic', 'underline', 'strike'],
                     [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                     ['link', 'image'],
                     [{ 'color': [] }, { 'background': [] }],
-                    [{ 'align': [] }],
                     ['clean']
                 ]
             }
@@ -119,27 +83,34 @@
             currentUser = JSON.parse(localStorage.getItem('dweiwy_user'));
             if (!currentUser || !currentUser.id) {
                 window.location.href = 'login.html';
-                return;
             }
-
-            navLinks.innerHTML = `<li><a href="create-post.html">Create Post</a></li><li><button id="logout-button" class="logout-button">Logout</button></li>`;
-            const logoutButton = document.getElementById('logout-button');
-            logoutButton.addEventListener('click', () => {
-                localStorage.removeItem('dweiwy_user');
-                window.location.href = 'index.html';
-            });
-            
-            const starsContainer = document.querySelector('.stars');
-            for (let i = 0; i < 50; i++) { /* Generate stars */ }
         });
 
-        // Drag and drop placeholder logic
+        // --- File Upload UI Logic ---
         const dropArea = document.getElementById('file-drop-area');
-        dropArea.addEventListener('click', () => document.getElementById('file-input').click());
+        const fileInput = document.getElementById('file-input');
+        const fileNameDisplay = document.getElementById('file-name');
+
+        dropArea.addEventListener('click', () => fileInput.click());
         dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.classList.add('dragover'); });
         dropArea.addEventListener('dragleave', () => dropArea.classList.remove('dragover'));
-        dropArea.addEventListener('drop', (e) => { e.preventDefault(); dropArea.classList.remove('dragover'); /* File handling logic would go here */});
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileNameDisplay.textContent = `File selected: ${files[0].name}`;
+                // In a real implementation, you would start the upload process here.
+            }
+        });
+        fileInput.addEventListener('change', () => {
+             if (fileInput.files.length > 0) {
+                fileNameDisplay.textContent = `File selected: ${fileInput.files[0].name}`;
+            }
+        });
 
+
+        // --- Form Submission Logic ---
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
             messageArea.textContent = '';
@@ -147,17 +118,17 @@
             submitButton.textContent = 'Publishing...';
 
             const title = document.getElementById('title').value;
-            // Get the HTML content from the Quill editor
             const content = quill.root.innerHTML;
             const image_url = document.getElementById('image_url').value;
 
-            // Basic validation for editor content
-            if (!title || quill.getLength() <= 1) { // quill.getLength() is 1 when empty
+            if (!title || quill.getLength() <= 1) {
                 displayMessage('Title and content are required.', 'error');
                 return;
             }
 
             try {
+                // NOTE: Full file upload requires a backend service like Cloudflare R2.
+                // For now, we are still saving the image_url provided in the input field.
                 const response = await fetch(`${API_BASE_URL}/api/posts`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -179,7 +150,7 @@
 
         function displayMessage(message, type) {
             messageArea.textContent = message;
-            messageArea.style.color = type === 'success' ? 'green' : 'red';
+            messageArea.style.color = type === 'success' ? '#2ecc71' : '#e74c3c';
             submitButton.disabled = false;
             submitButton.textContent = 'Publish Post';
         }

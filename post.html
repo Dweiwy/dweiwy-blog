@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Post - Dweiwy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header id="main-header">
+        <nav class="main-nav container">
+            <a href="index.html" class="nav-brand">Dweiwy</a>
+            <ul class="desktop-nav" id="nav-links">
+                <!-- Links dynamically inserted by script.js -->
+            </ul>
+        </nav>
+    </header>
+    
+    <main class="content-section">
+        <div class="container" id="post-container">
+             <div class="post-layout">
+                <aside class="post-sidebar" id="sidebar-container">
+                    <!-- Author card will be inserted here -->
+                </aside>
+                <article class="post-main" id="main-content-container">
+                     <!-- Post content will be inserted here -->
+                     <p id="loading-message">Loading post...</p>
+                </article>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Dweiwy. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        const API_BASE_URL = 'https://dweiwy-backend.ronandreicm.workers.dev';
+        const mainContainer = document.getElementById('main-content-container');
+        const sidebarContainer = document.getElementById('sidebar-container');
+        const loadingMessage = document.getElementById('loading-message');
+
+        async function fetchSinglePost() {
+            const params = new URLSearchParams(window.location.search);
+            const postId = params.get('id');
+
+            if (!postId) {
+                if(loadingMessage) loadingMessage.parentElement.innerHTML = '<h2>Post Not Found</h2>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/posts/${postId}`);
+                if (!response.ok) throw new Error('Post not found.');
+                
+                const post = await response.json();
+
+                document.title = `${post.title} - Dweiwy`;
+
+                const formattedDate = new Date(post.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+                
+                const imageUrl = post.image_url || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070';
+                
+                mainContainer.innerHTML = `
+                    <h1 class="post-title">${post.title}</h1>
+                    <img src="${imageUrl}" alt="${post.title}" class="post-cover-image">
+                    <div class="post-content">
+                        ${post.content}
+                    </div>
+                `;
+
+                // Use a placeholder avatar
+                const avatarUrl = `https://i.pravatar.cc/150?u=${encodeURIComponent(post.authorName)}`;
+
+                sidebarContainer.innerHTML = `
+                     <div class="author-card">
+                        <img src="${avatarUrl}" alt="${post.authorName}" class="author-avatar">
+                        <h4>${post.authorName}</h4>
+                        <p>Published on</p>
+                        <p>${formattedDate}</p>
+                    </div>
+                `;
+
+            } catch (error) {
+                if (loadingMessage) loadingMessage.textContent = 'Error loading post.';
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', fetchSinglePost);
+    </script>
+</body>
+</html>
+
