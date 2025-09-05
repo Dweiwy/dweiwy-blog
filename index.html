@@ -64,23 +64,17 @@
                 `;
             }
 
-            // A real-time online list is complex; this is a visual placeholder.
             sidebarContainer.innerHTML = `
                 ${loginWidgetHtml}
                 <div class="widget">
                     <div class="widget-header"><h3>Members Online</h3></div>
                     <div class="widget-body">
-                        <ul class="members-list">
-                             <li>
-                                <img src="https://i.pravatar.cc/150?u=admin" alt="Admin" class="member-avatar">
-                                <div class="staff-info">
-                                    <strong>Admin</strong>
-                                </div>
-                            </li>
+                        <ul class="members-list" id="members-online-list">
+                            <li>Loading...</li>
                         </ul>
                     </div>
-                     <div class="widget-footer">
-                        Total members: 1, Guests: 25
+                     <div class="widget-footer" id="online-stats">
+                        Loading stats...
                     </div>
                 </div>
             `;
@@ -107,6 +101,36 @@
                         }
                     });
                 }
+            }
+        }
+        
+        async function fetchActiveMembers() {
+            const listElement = document.getElementById('members-online-list');
+            const statsElement = document.getElementById('online-stats');
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users/active`);
+                if (!response.ok) throw new Error('Failed to fetch active members.');
+                const activeMembers = await response.json();
+
+                if (activeMembers.length > 0) {
+                    listElement.innerHTML = activeMembers.map(member => `
+                        <li>
+                            <img src="${member.profile_picture_url || 'https://i.pravatar.cc/150?u=' + member.id}" alt="${member.name}" class="member-avatar">
+                            <div class="staff-info">
+                                <a href="profile.html?id=${member.id}"><strong>${member.name}</strong></a>
+                                <div class="role role-${member.role}">${member.role}</div>
+                            </div>
+                        </li>
+                    `).join('');
+                } else {
+                    listElement.innerHTML = '<li>No members currently active.</li>';
+                }
+                // Static guest count for visual effect
+                statsElement.innerHTML = `Total members: ${activeMembers.length}, Guests: 25`;
+
+            } catch (error) {
+                listElement.innerHTML = '<li>Could not load active members.</li>';
+                statsElement.innerHTML = 'Could not load stats.';
             }
         }
 
@@ -156,6 +180,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             fetchPosts();
             renderSidebar();
+            fetchActiveMembers();
         });
     </script>
 </body>
