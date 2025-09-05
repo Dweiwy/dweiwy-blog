@@ -58,7 +58,23 @@ a:hover { color: var(--color-accent-dark); }
 .widget-header { background-color: #f9f9f9; padding: 12px 15px; border-bottom: 1px solid var(--color-border); border-radius: 5px 5px 0 0; }
 .widget-header h3 { margin: 0; font-size: 1.1em; }
 .widget-body { padding: 15px; }
-.staff-list li, .members-list li { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 0.9em; list-style-type: none;}
+/* New styles for widget footer links */
+.widget-footer {
+    padding: 10px 15px;
+    background-color: #f9f9f9;
+    border-top: 1px solid var(--color-border);
+    border-radius: 0 0 5px 5px;
+    font-size: 0.9em;
+    text-align: center;
+}
+.widget-footer a {
+    color: var(--color-light-text);
+    margin: 0 10px;
+}
+.widget-footer a:hover {
+    color: var(--color-accent);
+}
+.staff-list li, .members-list li { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 0.9em; list-style-type: none; padding: 0;} /* Added padding 0 */
 .staff-avatar, .member-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
 .staff-info .role { font-size: 0.8em; text-transform: capitalize; }
 .role-admin { color: var(--color-admin); }

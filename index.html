@@ -44,7 +44,7 @@
                     <div class="widget">
                         <div class="widget-header"><h3>Log In</h3></div>
                         <div class="widget-body">
-                            <form action="login.html">
+                            <form id="sidebar-login-form">
                                 <div class="form-group">
                                     <label for="email">Your name or email address</label>
                                     <input type="email" id="email" name="email" required>
@@ -56,27 +56,58 @@
                                 <button type="submit" class="button">Log In</button>
                             </form>
                         </div>
+                        <div class="widget-footer">
+                            <a href="forgot-password.html">Forgot password?</a>
+                            <a href="register.html">Register</a>
+                        </div>
                     </div>
                 `;
             }
 
+            // A real-time online list is complex; this is a visual placeholder.
             sidebarContainer.innerHTML = `
                 ${loginWidgetHtml}
                 <div class="widget">
-                    <div class="widget-header"><h3>Staff Online</h3></div>
+                    <div class="widget-header"><h3>Members Online</h3></div>
                     <div class="widget-body">
-                        <ul class="staff-list">
-                            <li>
-                                <img src="https://i.pravatar.cc/150?u=admin" alt="Admin" class="staff-avatar">
+                        <ul class="members-list">
+                             <li>
+                                <img src="https://i.pravatar.cc/150?u=admin" alt="Admin" class="member-avatar">
                                 <div class="staff-info">
                                     <strong>Admin</strong>
-                                    <div class="role role-admin">Site Admin</div>
                                 </div>
                             </li>
                         </ul>
                     </div>
+                     <div class="widget-footer">
+                        Total members: 1, Guests: 25
+                    </div>
                 </div>
             `;
+            
+            if (!loggedInUser) {
+                const sidebarLoginForm = document.getElementById('sidebar-login-form');
+                if (sidebarLoginForm) {
+                     sidebarLoginForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const email = e.target.email.value;
+                        const password = e.target.password.value;
+                        
+                        const response = await fetch(`${API_BASE_URL}/api/login`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email, password })
+                        });
+                        const data = await response.json();
+                        if (response.ok) {
+                            localStorage.setItem('dweiwy_user', JSON.stringify(data.user));
+                            window.location.reload();
+                        } else {
+                            alert(data.error || 'Login failed');
+                        }
+                    });
+                }
+            }
         }
 
         async function fetchPosts() {
@@ -98,7 +129,7 @@
                     postElement.innerHTML = `
                         <header class="post-header">
                             <div class="post-meta">
-                                By <a href="#">${post.authorName}</a>
+                                By <a href="profile.html?id=${post.author_id}">${post.authorName}</a>
                             </div>
                             <div class="post-date">
                                 <span class="month">${month}</span>
