@@ -34,7 +34,12 @@
 
         async function fetchProfile() {
             if (!profileId) {
-                profileContainer.innerHTML = '<p>Error: No profile ID provided.</p>';
+                // If no ID in URL, default to logged in user's profile
+                if (loggedInUser && loggedInUser.id) {
+                     window.location.search = `?id=${loggedInUser.id}`;
+                } else {
+                    profileContainer.innerHTML = '<p>Error: No profile ID provided and you are not logged in.</p>';
+                }
                 return;
             }
             try {
@@ -154,7 +159,7 @@
                  if (file && file.type.startsWith('image/')) {
                     // This is where you would upload the file to a service like Cloudflare R2 or S3.
                     // For now, we will simulate this by using a placeholder and asking for a URL.
-                    const imageUrl = prompt('File uploads coming soon! For now, please paste an image URL:');
+                    const imageUrl = prompt('File uploads are a future feature! For now, please paste a public image URL:');
                     if (imageUrl) {
                         pfpUrlInput.value = imageUrl;
                         previewImage.src = imageUrl;

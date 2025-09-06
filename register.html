@@ -53,18 +53,20 @@
         const API_BASE_URL = 'https://dweiwy-backend.ronandreicm.workers.dev';
         const registerForm = document.getElementById('register-form');
         const messageArea = document.getElementById('message-area');
+
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             messageArea.textContent = '';
-            const name = e.target.name.value;
-            const email = e.target.email.value;
-            const password = e.target.password.value;
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
             
             const response = await fetch(`${API_BASE_URL}/api/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, email, password })
             });
+
             const data = await response.json();
             if (response.ok) {
                 alert('Registration successful! Please log in.');

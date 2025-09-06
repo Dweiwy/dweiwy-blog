@@ -50,17 +50,19 @@
         const API_BASE_URL = 'https://dweiwy-backend.ronandreicm.workers.dev';
         const loginForm = document.getElementById('login-form');
         const messageArea = document.getElementById('message-area');
+
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             messageArea.textContent = '';
-            const email = e.target.email.value;
-            const password = e.target.password.value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
             
             const response = await fetch(`${API_BASE_URL}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
             });
+
             const data = await response.json();
             if (response.ok) {
                 localStorage.setItem('dweiwy_user', JSON.stringify(data.user));
