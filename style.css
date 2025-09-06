@@ -27,6 +27,9 @@ body {
 .container { max-width: 1200px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: 1fr; gap: 25px; }
 .container-no-sidebar { grid-template-columns: 1fr; }
 
+main { grid-column: 1 / -1; min-width: 0; }
+aside { display: none; } /* Default: Hide sidebar on mobile */
+
 @media (min-width: 992px) { 
     .container { 
         grid-template-columns: minmax(0, 1fr) 320px; 
@@ -35,16 +38,13 @@ body {
         grid-column: 1 / 2; 
     }
     aside {
-        display: flex;
+        display: flex; /* Override: Show sidebar on desktop */
         flex-direction: column;
         gap: 25px;
         grid-column: 2 / 3;
         grid-row: 1 / 2;
     }
 }
-
-main { grid-column: 1 / -1; min-width: 0; }
-aside { display: none; }
 
 
 /* --- Components --- */
