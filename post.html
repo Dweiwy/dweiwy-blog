@@ -19,119 +19,18 @@
         </nav>
     </header>
     
-    <div class="container">
+    <div class="container container-no-sidebar">
         <main id="post-container">
             <p id="loading-message">Loading post...</p>
         </main>
-        
-        <aside id="sidebar-container">
-             <!-- Sidebar will be loaded by script -->
-        </aside>
     </div>
 
     <script src="script.js"></script>
     <script>
         const API_BASE_URL = 'https://dweiwy-backend.ronandreicm.workers.dev';
         const postContainer = document.getElementById('post-container');
-        const sidebarContainer = document.getElementById('sidebar-container');
         const loggedInUser = JSON.parse(localStorage.getItem('dweiwy_user'));
         const postId = new URLSearchParams(window.location.search).get('id');
-
-        function renderSidebar() {
-            let loginWidgetHtml = '';
-            if (!loggedInUser) {
-                loginWidgetHtml = `
-                    <div class="widget">
-                        <div class="widget-header"><h3>Log In</h3></div>
-                        <div class="widget-body">
-                            <form id="sidebar-login-form">
-                                <div class="form-group">
-                                    <label for="email">Your name or email address</label>
-                                    <input type="email" id="email" name="email" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="password">Password</label>
-                                    <input type="password" id="password" name="password" required>
-                                </div>
-                                <button type="submit" class="button">Log In</button>
-                            </form>
-                        </div>
-                        <div class="widget-footer">
-                            <a href="forgot-password.html">Forgot password?</a>
-                            <a href="register.html">Register</a>
-                        </div>
-                    </div>
-                `;
-            }
-
-            sidebarContainer.innerHTML = `
-                ${loginWidgetHtml}
-                <div class="widget">
-                    <div class="widget-header"><h3>Members Online</h3></div>
-                    <div class="widget-body">
-                        <ul class="members-list" id="members-online-list">
-                            <li>Loading...</li>
-                        </ul>
-                    </div>
-                     <div class="widget-footer" id="online-stats">
-                        Loading stats...
-                    </div>
-                </div>
-            `;
-            
-            if (!loggedInUser) {
-                const sidebarLoginForm = document.getElementById('sidebar-login-form');
-                if (sidebarLoginForm) {
-                     sidebarLoginForm.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        const email = e.target.email.value;
-                        const password = e.target.password.value;
-                        
-                        const response = await fetch(`${API_BASE_URL}/api/login`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email, password })
-                        });
-                        const data = await response.json();
-                        if (response.ok) {
-                            localStorage.setItem('dweiwy_user', JSON.stringify(data.user));
-                            window.location.reload();
-                        } else {
-                            alert(data.error || 'Login failed');
-                        }
-                    });
-                }
-            }
-        }
-        
-        async function fetchActiveMembers() {
-            const listElement = document.getElementById('members-online-list');
-            const statsElement = document.getElementById('online-stats');
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/users/active`);
-                if (!response.ok) throw new Error('Failed to fetch active members.');
-                const activeMembers = await response.json();
-
-                if (activeMembers.length > 0) {
-                    listElement.innerHTML = activeMembers.map(member => `
-                        <li>
-                            <img src="${member.profile_picture_url || 'https://i.pravatar.cc/150?u=' + member.id}" alt="${member.name}" class="member-avatar">
-                            <div class="staff-info">
-                                <a href="profile.html?id=${member.id}"><strong>${member.name}</strong></a>
-                                <div class="role role-${member.role}">${member.role}</div>
-                            </div>
-                        </li>
-                    `).join('');
-                } else {
-                    listElement.innerHTML = '<li>No members currently active.</li>';
-                }
-                statsElement.innerHTML = `Total members: ${activeMembers.length}, Guests: 25`;
-
-            } catch (error) {
-                listElement.innerHTML = '<li>Could not load active members.</li>';
-                statsElement.innerHTML = 'Could not load stats.';
-            }
-        }
 
         async function fetchPost() {
             if (!postId) {
@@ -254,8 +153,6 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchPost();
-            renderSidebar();
-            fetchActiveMembers();
         });
     </script>
 </body>

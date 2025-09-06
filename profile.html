@@ -19,128 +19,175 @@
         </nav>
     </header>
     
-    <div class="container">
+    <div class="container container-no-sidebar">
         <main id="profile-container">
             <p id="loading-message">Loading profile...</p>
         </main>
-        
-        <aside id="sidebar-container">
-            <!-- Sidebar widgets for profile page -->
-        </aside>
     </div>
 
     <script src="script.js"></script>
     <script>
         const API_BASE_URL = 'https://dweiwy-backend.ronandreicm.workers.dev';
         const profileContainer = document.getElementById('profile-container');
-        const sidebarContainer = document.getElementById('sidebar-container');
         const loggedInUser = JSON.parse(localStorage.getItem('dweiwy_user'));
+        const profileId = new URLSearchParams(window.location.search).get('id');
 
-        async function fetchUserProfile() {
-            const params = new URLSearchParams(window.location.search);
-            const userId = params.get('id') || loggedInUser?.id;
-            if (!userId) { profileContainer.innerHTML = '<h2>User not found.</h2>'; return; }
-
+        async function fetchProfile() {
+            if (!profileId) {
+                profileContainer.innerHTML = '<p>Error: No profile ID provided.</p>';
+                return;
+            }
             try {
-                const response = await fetch(`${API_BASE_URL}/api/users/${userId}`);
+                const response = await fetch(`${API_BASE_URL}/api/users/${profileId}`);
                 if (!response.ok) throw new Error('User not found.');
                 const profile = await response.json();
+                document.title = `${profile.name} - Dweiwy`;
                 renderProfile(profile);
-                renderSidebar(profile);
+
             } catch (error) {
-                profileContainer.innerHTML = `<h2>Error</h2><p>${error.message}</p>`;
+                profileContainer.innerHTML = `<p>Error: ${error.message}</p>`;
             }
         }
 
         function renderProfile(profile) {
-            document.title = `${profile.name}'s Profile - Dweiwy`;
-            const isOwnProfile = loggedInUser && loggedInUser.id === profile.id;
+            const isOwnProfile = loggedInUser && loggedInUser.id == profileId;
+            let editProfileFormHtml = '';
 
-            let editProfileHtml = '';
             if (isOwnProfile) {
-                editProfileHtml = `
+                editProfileFormHtml = `
                     <div class="widget">
-                        <div class="widget-header"><h3>Edit Profile</h3></div>
+                        <div class="widget-header"><h3>Edit Your Profile</h3></div>
                         <div class="widget-body">
                             <form id="edit-profile-form">
                                 <div class="form-group">
-                                    <label for="userName">Display Name</label>
-                                    <input type="text" id="userName" value="${profile.name}" required>
+                                    <label for="name">Display Name</label>
+                                    <input type="text" id="name" value="${profile.name || ''}" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="userBio">Bio</label>
-                                    <textarea id="userBio" style="min-height: 100px;">${profile.bio || ''}</textarea>
+                                    <label for="bio">Bio</label>
+                                    <textarea id="bio" placeholder="Tell us about yourself...">${profile.bio || ''}</textarea>
                                 </div>
-                                 <div class="form-group">
-                                    <label for="avatarUrl">Avatar URL</label>
-                                    <input type="text" id="avatarUrl" placeholder="Paste an image URL" value="${profile.avatar_url || ''}">
+                                <div class="form-group">
+                                    <label>Profile Picture</label>
+                                    <div id="pfp-drop-zone" class="pfp-drop-zone">
+                                        <div class="pfp-preview-container" style="${profile.profile_picture_url ? '' : 'display: none;'}">
+                                            <img src="${profile.profile_picture_url || ''}" id="pfp-preview" class="pfp-preview">
+                                            <div class="pfp-actions">
+                                                <button type="button" id="pfp-replace-btn" class="pfp-action-btn">Replace</button>
+                                                <button type="button" id="pfp-remove-btn" class="pfp-action-btn remove">Remove</button>
+                                            </div>
+                                        </div>
+                                        <div class="pfp-prompt" style="${profile.profile_picture_url ? 'display: none;' : ''}">
+                                            <p><strong>Drag & Drop an image here</strong></p>
+                                            <p class="pfp-prompt-small">or click to select a file</p>
+                                            <input type="file" id="pfp-file-input" accept="image/*" style="display: none;">
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="profile_picture_url" value="${profile.profile_picture_url || ''}">
+                                    <p class="form-upload-note">Note: Direct file upload is a future feature. For now, please use a URL.</p>
                                 </div>
-                                <button type="submit" class="button">Save</button>
+                                <button type="submit" class="button">Save Changes</button>
                             </form>
                         </div>
                     </div>`;
             }
 
             profileContainer.innerHTML = `
-                <div class="post-card profile-card">
+                <div class="widget profile-card">
                     <div class="profile-header"></div>
                     <div class="profile-avatar-wrapper">
-                        <img src="${profile.avatar_url || 'https://i.pravatar.cc/150'}" alt="${profile.name}" class="profile-avatar">
+                        <img src="${profile.profile_picture_url || 'https://i.pravatar.cc/150?u=' + profile.id}" alt="${profile.name}" class="profile-avatar">
                     </div>
                     <div class="profile-info">
                         <h1>${profile.name}</h1>
                         <p class="profile-rank">${profile.role}</p>
-                        <p class="profile-bio">${profile.bio || 'No bio provided.'}</p>
+                        <p class="profile-bio">${profile.bio || 'No bio yet.'}</p>
                     </div>
                 </div>
-                ${editProfileHtml}
-            `;
-            if (isOwnProfile) {
-                setupEditProfileForm(profile.id);
-            }
-        }
-        
-        function renderSidebar(profile) {
-            sidebarContainer.innerHTML = `
                 <div class="widget">
-                    <div class="widget-header"><h3>User's Posts</h3></div>
+                    <div class="widget-header"><h3>${profile.name}'s Posts</h3></div>
                     <div class="widget-body">
-                         <ul class="staff-list">
-                            ${profile.posts.length > 0 ? profile.posts.map(post => `
-                                <li><a href="post.html?id=${post.id}">${post.title}</a></li>
-                            `).join('') : '<li>No posts yet.</li>'}
+                        <ul class="members-list">
+                            ${profile.posts.length > 0 ? profile.posts.map(post => `<li><a href="post.html?id=${post.id}">${post.title}</a></li>`).join('') : '<li>No posts yet.</li>'}
                         </ul>
                     </div>
                 </div>
+                ${editProfileFormHtml}
             `;
+
+            if (isOwnProfile) {
+                setupEditProfileForm();
+            }
         }
 
-        function setupEditProfileForm(userId) {
+        function setupEditProfileForm() {
             const form = document.getElementById('edit-profile-form');
+            const dropZone = document.getElementById('pfp-drop-zone');
+            const fileInput = document.getElementById('pfp-file-input');
+            const pfpUrlInput = document.getElementById('profile_picture_url');
+            const previewContainer = document.querySelector('.pfp-preview-container');
+            const previewImage = document.getElementById('pfp-preview');
+            const prompt = document.querySelector('.pfp-prompt');
+            const removeBtn = document.getElementById('pfp-remove-btn');
+            const replaceBtn = document.getElementById('pfp-replace-btn');
+
+            // --- Event Listeners for file upload UI ---
+            dropZone.addEventListener('click', () => fileInput.click());
+            replaceBtn.addEventListener('click', () => fileInput.click());
+
+            removeBtn.addEventListener('click', () => {
+                pfpUrlInput.value = '';
+                previewContainer.style.display = 'none';
+                prompt.style.display = '';
+            });
+
+            fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('active'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('active');
+                handleFile(e.dataTransfer.files[0]);
+            });
+
+            function handleFile(file) {
+                 if (file && file.type.startsWith('image/')) {
+                    // This is where you would upload the file to a service like Cloudflare R2 or S3.
+                    // For now, we will simulate this by using a placeholder and asking for a URL.
+                    const imageUrl = prompt('File uploads coming soon! For now, please paste an image URL:');
+                    if (imageUrl) {
+                        pfpUrlInput.value = imageUrl;
+                        previewImage.src = imageUrl;
+                        previewContainer.style.display = '';
+                        prompt.style.display = 'none';
+                    }
+                }
+            }
+            
+            // --- Form Submission ---
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const name = document.getElementById('userName').value;
-                const bio = document.getElementById('userBio').value;
-                const avatar_url = document.getElementById('avatarUrl').value;
-                
-                const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
+                const name = document.getElementById('name').value;
+                const bio = document.getElementById('bio').value;
+
+                const response = await fetch(`${API_BASE_URL}/api/users/${profileId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, bio, avatar_url })
+                    body: JSON.stringify({ name, bio, profile_picture_url: pfpUrlInput.value })
                 });
-                const data = await response.json();
 
-                // Update localStorage and refresh the page to show changes
+                const data = await response.json();
                 if (response.ok) {
-                    localStorage.setItem('dweiwy_user', JSON.stringify(data.user));
+                    localStorage.setItem('dweiwy_user', JSON.stringify(data.user)); // Update local storage
+                    alert('Profile updated!');
                     window.location.reload();
                 } else {
-                    alert('Failed to update profile.');
+                    alert(`Error: ${data.error}`);
                 }
             });
         }
-        
-        document.addEventListener('DOMContentLoaded', fetchUserProfile);
+
+        document.addEventListener('DOMContentLoaded', fetchProfile);
     </script>
 </body>
 </html>
