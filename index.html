@@ -153,27 +153,28 @@
                         month: 'long', day: 'numeric', year: 'numeric'
                     });
 
+                    // Strip HTML for the snippet
+                    const snippet = post.content.replace(/<[^>]*>?/gm, '').substring(0, 200);
+
                     postElement.innerHTML = `
-                        <header class="post-header">
-                            <div class="post-info">
-                                <h2 class="post-title"><a href="post.html?id=${post.id}">${post.title}</a></h2>
-                                <div class="post-meta">
+                        <div class="post-card-header">
+                            <div class="post-card-info">
+                                <h2 class="post-card-title"><a href="post.html?id=${post.id}">${post.title}</a></h2>
+                                <div class="post-card-meta">
                                     <span>By <a href="profile.html?id=${post.author_id}">${post.authorName}</a></span>
                                     <span>${fullDate}</span>
                                 </div>
                             </div>
-                            <div class="post-date">
+                            <div class="post-card-date">
                                 <span class="day">${day}</span>
                                 <span class="month">${month}</span>
                             </div>
-                        </header>
-                        <div class="post-main-content">
-                             <a href="post.html?id=${post.id}">
-                                <img src="${post.image_url || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070'}" alt="${post.title}" class="post-cover-image">
-                             </a>
                         </div>
-                        <div class="post-body-snippet">
-                            ${post.content.replace(/<[^>]*>?/gm, '').substring(0, 250)}...
+                        <a href="post.html?id=${post.id}" class="post-card-image-link">
+                            <img src="${post.image_url || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070'}" alt="${post.title}" class="post-card-image">
+                        </a>
+                        <div class="post-card-snippet">
+                            <p>${snippet}...</p>
                             <a href="post.html?id=${post.id}" class="read-more-link">Keep Reading</a>
                         </div>
                     `;
